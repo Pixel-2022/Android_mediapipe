@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:background="@drawable/fragment1_back"
+    android:orientation="vertical">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:id="@+id/content"
+        android:gravity="center">
+        <Button
+            android:id="@+id/handRecogBtn"
+            android:layout_width="272dp"
+            android:layout_height="116dp"
+            android:backgroundTint="#C6DAD6"
+            android:text="수어 인식"
+            android:textSize="40dp"
+            android:textColor="@color/black"/>
+        <Button
+            android:id="@+id/stuffRecogBtn"
+            android:layout_width="272dp"
+            android:layout_height="116dp"
+            android:backgroundTint="#C6DAD6"
+            android:text="물체 인식"
+            android:textSize="40dp"
+            android:textColor="@color/black"/>
+
+    </LinearLayout>
+<!--    <fragment-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:id="@+id/frame"-->
+<!--        android:name="com.moworkspace.pixel_front.Fragment1Hand"-->
+<!--        android:tag="info sub"-->
+<!--        >-->
+
+<!--    </fragment>-->
+
+</LinearLayout>
