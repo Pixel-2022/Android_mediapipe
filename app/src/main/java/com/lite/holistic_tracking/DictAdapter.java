@@ -109,6 +109,12 @@ public class DictAdapter extends RecyclerView.Adapter<DictAdapter.ViewHolder>{
         }
     }
 
+    //검색 용
+    public void filterList(ArrayList<Dict> filterList){
+        dict= filterList;
+        notifyDataSetChanged();
+    }
+
     public void custom_dialog(View v){
         View dialogView = inflater.inflate(R.layout.dialog_wordadd,null);
 
