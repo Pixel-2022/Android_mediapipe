@@ -1,6 +1,7 @@
 package com.lite.holistic_tracking;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -58,7 +59,11 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder>{
                 public void onClick(View v){
                     MainActivity main = (MainActivity) context;
                     int b= sendposition();
-                    main.toMain(b);
+                    if(b==0){
+                        context.startActivity(new Intent(context, EndTalk_Mediapipe_Activity.class));
+                    }else{
+                        main.toMain(b);
+                    }
                 }
             });
         }

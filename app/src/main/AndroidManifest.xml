@@ -32,7 +32,7 @@
         <activity android:name=".JoinActivity"/>
         <activity android:name=".Forgot_pw_Activity"/>
         <activity android:name="com.lite.holistic_tracking.holistic_activity"/>
-
+        <activity android:name=".EndTalk_Mediapipe_Activity"/>
 
         <meta-data
             android:name="cameraFacingFront"

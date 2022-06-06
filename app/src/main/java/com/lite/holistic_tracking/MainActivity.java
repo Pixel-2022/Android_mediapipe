@@ -135,9 +135,9 @@ public class MainActivity extends AppCompatActivity {
             else if(a==1){
                 fragment = new Fragment_WordCard();
             }
-            else{
-                fragment = new Fragment_EndTalk();
-            }
+//            else{
+//                fragment = new Fragment_EndTalk();
+//            }
             fragmentTransaction.add(R.id.content_layout, fragment, tag0);
         }
         else {
