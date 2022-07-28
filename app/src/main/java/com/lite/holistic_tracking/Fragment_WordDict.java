@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -39,13 +40,15 @@ public class Fragment_WordDict extends Fragment {
     String[] names;
     String[] images;
     String[] videoURLs;
+    private String BASE_URL=LoginActivity.getBASE_URL();
 
     //필터
     EditText searchET;
     ArrayList<Dict> filteredList;
     DictAdapter adapter;
 
-    private String BASE_URL=LoginActivity.getBASE_URL();
+
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         setHasOptionsMenu(true);
@@ -55,7 +58,6 @@ public class Fragment_WordDict extends Fragment {
         filteredList=new ArrayList<>();
         // 리사이클
         recyclerView = v.findViewById(R.id.recyclerView1);
-
         searchET=v.findViewById(R.id.search_edit);
 
 
@@ -70,10 +72,6 @@ public class Fragment_WordDict extends Fragment {
             @Override
             public void onResponse(Call<JsonElement> call, Response<JsonElement> response) {
                 JsonArray DictResponseArray = response.body().getAsJsonArray();
-//                Log.e("넘어오는 갯수", String.valueOf(DictResponseArray.size()));
-//                Log.e(":D",DictResponseArray.get(0).toString());
-//                JsonElement jsonElement1 = DictResponseArray.get(0);
-//                Log.e("name",jsonElement1.getAsJsonObject().get("Word").getAsString());
 
                 //배열 선언
                 names = new String[DictResponseArray.size()];
@@ -100,6 +98,11 @@ public class Fragment_WordDict extends Fragment {
             @Override
             public void onFailure(Call<JsonElement> call, Throwable t) {
                 Log.e("실패군","실패다");
+                dataList.add(new Dict("실패예요","http://drive.google.com/uc?export=view&id=1djpCxxUwXj12MzTCdl-wDZqZIuuJTl7B/view", "ASdasdasdafasdsafad"));
+                adapter=new DictAdapter(context, dataList);
+                LinearLayoutManager = new LinearLayoutManager(getActivity().getApplicationContext());
+                recyclerView.setLayoutManager(LinearLayoutManager);
+                recyclerView.setAdapter(adapter);
             }
         });
 
@@ -120,8 +123,6 @@ public class Fragment_WordDict extends Fragment {
                 searchFilter(searchText);
             }
         });
-
-
         return v;
     }
 
@@ -134,7 +135,6 @@ public class Fragment_WordDict extends Fragment {
     public void onResume(){
         super.onResume();
     }
-
     public void searchFilter(String searchText){
         filteredList.clear();
 
@@ -143,9 +143,7 @@ public class Fragment_WordDict extends Fragment {
                 filteredList.add(dataList.get(i));
             }
         }
-
         adapter.filterList(filteredList);
     }
-
 
 }

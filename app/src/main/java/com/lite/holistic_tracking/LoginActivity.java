@@ -30,8 +30,9 @@ public class LoginActivity extends AppCompatActivity{
     private RetrofitInterface retrofitInterface;
     // 임의의 BASE_URL 추가해둔 상태. 추후 수정해야 함
     //신나:public String BASE_URL = "http://192.168.199.1:3001";
+    //"http://192.168.219.121:3001"
     //무지:private String BASE_URL = "http://192.168.0.5:3001";
-    public static String BASE_URL = "http://192.168.0.5:3001";
+    public static String BASE_URL = "http://192.168.219.121:3001";
 
     public static String getBASE_URL(){
         return BASE_URL;
@@ -71,9 +72,9 @@ public class LoginActivity extends AppCompatActivity{
             @Override
             public void onClick(View view) {
                 //로그인 핸들러 호출
-//                handleLogin();
-                Intent intent = new Intent(getApplicationContext(),MainActivity.class);
-                startActivity(intent);
+                handleLogin();
+                //Intent intent = new Intent(getApplicationContext(),MainActivity.class);
+                //startActivity(intent);
             }
         });
         //비밀번호 찾기
@@ -142,7 +143,7 @@ public class LoginActivity extends AppCompatActivity{
                 Toast.makeText(LoginActivity.this, t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
-        
+
     }
     //키보드 내리기
     @Override
