@@ -22,4 +22,15 @@ public interface RetrofitInterface {
 
     @GET("/dict/dictAll")
     Call<JsonElement> getDictAll();
+
+    //    API한테서 값 받아오기
+    @GET("/muzi")
+    Call<JsonElement> getWhatEverMuzi();
+    //    API한테서 값 받아오기
+    @POST("/test")
+    Call<JsonElement> getWhatEver(@Body HashMap<String, float[][]> map);
+
+    //    API한테 값 보내주기
+    @POST("/point")
+    Call<JsonElement> sendLandmark(@Body HashMap<String, float[][]> map);
 }
