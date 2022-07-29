@@ -52,15 +52,22 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-
-
         Intent intent= getIntent();
         Bundle bundle = intent.getExtras();
+
         //로그인한 사용자 정보 전역변수에 저장
-//        p_name = bundle.getString("name");
-//        p_email = bundle.getString("email");
-//        p_password = bundle.getString("password");
-//        p_userID = bundle.getInt("UserID");
+
+        //p_name = "123";
+        //p_email = "123";
+        //p_password = "456";
+        //p_userID = 2;
+
+
+        p_name = bundle.getString("name");
+        p_email = bundle.getString("email");
+        p_password = bundle.getString("password");
+        p_userID = bundle.getInt("UserID");
+
 
         //바텀 네비게이션 이용하기
         mBottomNV = findViewById(R.id.nav_view);

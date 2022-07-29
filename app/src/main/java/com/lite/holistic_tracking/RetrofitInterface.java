@@ -23,6 +23,16 @@ public interface RetrofitInterface {
     @GET("/dict/dictAll")
     Call<JsonElement> getDictAll();
 
+    @POST("/wordList/listAll")
+    Call<JsonElement> getListAll(@Body HashMap<String, String> map);
+
+    @POST("/wordList/listAdd")
+    Call<JsonElement> addList(@Body HashMap<String, String> map);
+    //Call<JsonElement> addList(@Body WordInformation wordInformation);
+
+    @POST("/wordList/listDel")
+    Call<JsonElement> delList(@Body HashMap<String, String> map);
+
     //    API한테서 값 받아오기
     @GET("/muzi")
     Call<JsonElement> getWhatEverMuzi();

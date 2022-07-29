@@ -7,14 +7,30 @@
     android:orientation="vertical"
     android:background="@drawable/login_back">
 
-    <androidx.appcompat.widget.SearchView
+    <!--<androidx.appcompat.widget.SearchView
         android:id="@+id/searchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/round_white"
         android:layout_margin="10dp"
         android:focusable="false"
-        />
+        />-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal"
+        android:background="@drawable/round_white"
+        android:gravity="center">
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/search"/>
+
+        <EditText
+            android:id="@+id/search_edit2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </LinearLayout>
 
     <FrameLayout
         android:layout_width="match_parent"
