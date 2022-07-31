@@ -16,6 +16,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.mediapipe.components.CameraHelper;
 import com.google.mediapipe.components.CameraXPreviewHelper;
 import com.google.mediapipe.components.ExternalTextureConverter;
@@ -27,7 +29,12 @@ import com.google.mediapipe.framework.PacketGetter;
 import com.google.mediapipe.glutil.EglManager;
 import com.google.protobuf.InvalidProtocolBufferException;
 
+import java.util.HashMap;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class holistic_activity extends AppCompatActivity {
 
@@ -78,6 +85,12 @@ public class holistic_activity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_holistic_activity);
 
+        HashMap<String, float[][]> LandmarkMap = new HashMap<>();
+        LandmarkMap.put("pose",null);
+        LandmarkMap.put("leftHand",null);
+        LandmarkMap.put("rightHand",null);
+        LandmarkMap.put("face",null);
+
         backBtn = findViewById(R.id.BackBtn);
         backBtn.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -116,12 +129,13 @@ public class holistic_activity extends AppCompatActivity {
 //                        Log.v("AAA", String.valueOf(packet));
 //                        LandmarkProto.NormalizedLandmarkList poseLandmarks =
 //                                PacketGetter.getProto(packet, LandmarkProto.NormalizedLandmarkList.class);
-                        Log.v(
-                                "AAA_FL",
-                                "[TS:"
-                                        + packet.getTimestamp()
-                                        + "] "
-                                        + getPoseLandmarksDebugString(poseLandmarks));
+//                        Log.v(
+//                                "AAA_FL",
+//                                "[TS:"
+//                                        + packet.getTimestamp()
+//                                        + "] "
+//                                        + getPoseLandmarksDebugString(poseLandmarks));
+                        LandmarkMap.put("face",getPoseLandmarksDebugAry(poseLandmarks));
                     } catch (InvalidProtocolBufferException e) {
                         Log.e("AAA", "Failed to get proto.", e);
                     }
@@ -135,12 +149,13 @@ public class holistic_activity extends AppCompatActivity {
 //                        Log.v("AAA", String.valueOf(packet));
 //                        LandmarkProto.NormalizedLandmarkList poseLandmarks =
 //                                PacketGetter.getProto(packet, LandmarkProto.NormalizedLandmarkList.class);
-                        Log.v(
-                                "AAA_PL",
-                                "[TS:"
-                                        + packet.getTimestamp()
-                                        + "] "
-                                        + getPoseLandmarksDebugString(poseLandmarks));
+//                        Log.v(
+//                                "AAA_PL",
+//                                "[TS:"
+//                                        + packet.getTimestamp()
+//                                        + "] "
+//                                        + getPoseLandmarksDebugString(poseLandmarks));
+                        LandmarkMap.put("pose",getPoseLandmarksDebugAry(poseLandmarks));
                     } catch (InvalidProtocolBufferException e) {
                         Log.e("AAA", "Failed to get proto.", e);
                     }
@@ -154,12 +169,13 @@ public class holistic_activity extends AppCompatActivity {
 //                        Log.v("AAA", String.valueOf(packet));
 //                        LandmarkProto.NormalizedLandmarkList poseLandmarks =
 //                                PacketGetter.getProto(packet, LandmarkProto.NormalizedLandmarkList.class);
-                        Log.v(
-                                "AAA_LH",
-                                "[TS:"
-                                        + packet.getTimestamp()
-                                        + "] "
-                                        + getPoseLandmarksDebugString(poseLandmarks));
+//                        Log.v(
+//                                "AAA_LH",
+//                                "[TS:"
+//                                        + packet.getTimestamp()
+//                                        + "] "
+//                                        + getPoseLandmarksDebugString(poseLandmarks));
+                        LandmarkMap.put("leftHand",getPoseLandmarksDebugAry(poseLandmarks));
                     } catch (InvalidProtocolBufferException e) {
                         Log.e("AAA", "Failed to get proto.", e);
                     }
@@ -173,12 +189,13 @@ public class holistic_activity extends AppCompatActivity {
 //                        Log.v("AAA", String.valueOf(packet));
 //                        LandmarkProto.NormalizedLandmarkList poseLandmarks =
 //                                PacketGetter.getProto(packet, LandmarkProto.NormalizedLandmarkList.class);
-                        Log.v(
-                                "AAA_RH",
-                                "[TS:"
-                                        + packet.getTimestamp()
-                                        + "] "
-                                        + getPoseLandmarksDebugString(poseLandmarks));
+//                        Log.v(
+//                                "AAA_RH",
+//                                "[TS:"
+//                                        + packet.getTimestamp()
+//                                        + "] "
+//                                        + getPoseLandmarksDebugString(poseLandmarks));
+                        LandmarkMap.put("rightHand",getPoseLandmarksDebugAry(poseLandmarks));
                     } catch (InvalidProtocolBufferException e) {
                         Log.e("AAA", "Failed to get proto.", e);
                     }
@@ -192,25 +209,58 @@ public class holistic_activity extends AppCompatActivity {
 
 
         PermissionHelper.checkAndRequestCameraPermissions(this);
-    }
 
-    private static String getPoseLandmarksDebugString(LandmarkProto.NormalizedLandmarkList poseLandmarks) {
-        String poseLandmarkStr = "Pose landmarks: " + poseLandmarks.getLandmarkCount() + "\n";
+
+// Flask의 REST API와의 연결 (목적 : 카메라로 인식한 좌표값 API에게 보내서 계산된 좌표값을 받아오는 코드)
+
+
+        RetrofitClient retrofitClient = new RetrofitClient();
+        retrofitClient.generateClient();
+        Call<JsonElement> callAPI = retrofitClient.getApi().getWhatEver(LandmarkMap);
+        callAPI.enqueue(new Callback<JsonElement>() {
+            @Override
+            public void onResponse(Call<JsonElement> call, Response<JsonElement> response) {
+                JsonArray DictResponseArray = response.body().getAsJsonArray();
+                Log.e("api가 계산해서 보냈어요", String.valueOf(DictResponseArray));
+            }
+            @Override
+            public void onFailure(Call<JsonElement> call, Throwable t) {
+                Log.e("실패군","실패다");
+            }
+        });
+
+    }
+// 좌표값 string으로 변환해서 반환하는 코드
+//    private static String getPoseLandmarksDebugString(LandmarkProto.NormalizedLandmarkList poseLandmarks) {
+//        String poseLandmarkStr = "Pose landmarks: " + poseLandmarks.getLandmarkCount() + "\n";
+//        int landmarkIndex = 0;
+//        for (LandmarkProto.NormalizedLandmark landmark : poseLandmarks.getLandmarkList()) {
+//            poseLandmarkStr +=
+//                    "\tLandmark ["
+//                            + landmarkIndex
+//                            + "]: ("
+//                            + landmark.getX()
+//                            + ", "
+//                            + landmark.getY()
+//                            + ", "
+//                            + landmark.getZ()
+//                            + ")\n";
+//            ++landmarkIndex;
+//        }
+//        return poseLandmarkStr;
+//    }
+
+// 좌표값 숫자 배열로 변환해서 반환하는 코드
+    private static float[][] getPoseLandmarksDebugAry(LandmarkProto.NormalizedLandmarkList poseLandmarks){
+        float[][] poseLandmarkAry = new float[poseLandmarks.getLandmarkCount()][3];
         int landmarkIndex = 0;
         for (LandmarkProto.NormalizedLandmark landmark : poseLandmarks.getLandmarkList()) {
-            poseLandmarkStr +=
-                    "\tLandmark ["
-                            + landmarkIndex
-                            + "]: ("
-                            + landmark.getX()
-                            + ", "
-                            + landmark.getY()
-                            + ", "
-                            + landmark.getZ()
-                            + ")\n";
+            poseLandmarkAry[landmarkIndex][0] = landmark.getX();
+            poseLandmarkAry[landmarkIndex][1] = landmark.getY();
+            poseLandmarkAry[landmarkIndex][2] = landmark.getZ();
             ++landmarkIndex;
         }
-        return poseLandmarkStr;
+        return poseLandmarkAry;
     }
 
     @Override
