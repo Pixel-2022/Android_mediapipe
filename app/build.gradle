@@ -32,7 +32,16 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 }
-
+allprojects{
+    repositories{
+        mavenCentral()
+        maven{
+            name 'ossrh-snapshot'
+            url 'https://oss.sonatype.org/content/repositories/snapshots'
+        }
+        mavenLocal()
+    }
+}
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation 'androidx.appcompat:appcompat:1.2.0'
@@ -70,5 +79,9 @@ dependencies {
     implementation 'com.squareup.okhttp:okhttp:2.4.0'
 
     implementation 'org.tensorflow:tensorflow-lite:+'
+
+    implementation 'org.tensorflow:tensorflow-lite:0.1.100'
+    implementation 'org.tensorflow:tensorflow-lite-select-tf-ops:2.3.0'
+
 }
 tasks.register("prepareKotlinBuildScriptModel"){}
