@@ -8,12 +8,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Adapter;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -30,11 +32,12 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class Fragment_WordCard extends Fragment {
+
     //백
     private Retrofit retrofit;
     private RetrofitInterface retrofitInterface;
     private String BASE_URL=LoginActivity.getBASE_URL();
-    private RecyclerView recyclerView;
+    private static RecyclerView recyclerView;
 
     String[] words;
     Boolean[] stars;
@@ -44,15 +47,13 @@ public class Fragment_WordCard extends Fragment {
     private String stringp_userId=String.valueOf(p_userId);
     //
     private View v;
-    WordCardAdapter adapter;
-    private RecyclerView.LayoutManager mLayoutManager;
-    ArrayList<Data> dataList=new ArrayList();
-
+    static WordCardAdapter adapter;
+    private static RecyclerView.LayoutManager mLayoutManager;
+    static ArrayList<Data> dataList=new ArrayList();
 
     EditText searchET;
     ArrayList<Data> filteredList;
-
-
+    private static ArrayList<Data> delList = new ArrayList<Data>();
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -63,14 +64,12 @@ public class Fragment_WordCard extends Fragment {
         filteredList=new ArrayList<>();
         searchET=v.findViewById(R.id.search_edit2);
 
-
         mLayoutManager = new LinearLayoutManager(context);
         recyclerView.setLayoutManager(mLayoutManager);
-
         adapter = new WordCardAdapter(context,dataList);
-
         recyclerView.setAdapter(adapter);
 
+        delList.clear();
 
         retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
@@ -85,9 +84,11 @@ public class Fragment_WordCard extends Fragment {
         call.enqueue(new Callback<JsonElement>() {
             @Override
             public void onResponse(Call<JsonElement> call, Response<JsonElement> response) {
+                if (response.code()==201){
+                    Log.e("AAA", "제대로 들어왔읍니다");
+                }
                 if(response.body() !=null ){
                     JsonArray ListResponseArray = response.body().getAsJsonArray();
-
 
                     ids=new int[ListResponseArray.size()];
                     stars=new Boolean[ListResponseArray.size()];
@@ -107,6 +108,7 @@ public class Fragment_WordCard extends Fragment {
                         words[i]=word;
                     }
                     //userid 같은 것 들만 리사이클러에 추가
+                    dataList.clear();
                     for (int i=0; i< ListResponseArray.size(); i++){
                         if(userids[i]==p_userId){
                             dataList.add(new Data(ids[i],  userids[i], stars[i], words[i]));
@@ -118,6 +120,7 @@ public class Fragment_WordCard extends Fragment {
                     mLayoutManager = new LinearLayoutManager(getActivity().getApplicationContext());
                     recyclerView.setLayoutManager(mLayoutManager);
                     recyclerView.setAdapter(adapter);
+
 
                 }else{Log.e("AAA","내용물이 비어있습니다.");}
             }
@@ -149,24 +152,6 @@ public class Fragment_WordCard extends Fragment {
                 searchFilter(searchText);
             }
         });
-
-//        SearchView searchView = (SearchView) v.findViewById(R.id.searchView);
-//        searchView.setIconifiedByDefault(false);
-//
-//        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-//            @Override
-//            public boolean onQueryTextSubmit(String a_query) {
-//                // to do
-//                searchView.clearFocus();
-//                return false;
-//            }
-//
-//            @Override
-//            public boolean onQueryTextChange(String a_newText) {
-//                // to do
-//                return false;
-//            }
-//        });
         return v;
     }
 
@@ -176,7 +161,6 @@ public class Fragment_WordCard extends Fragment {
     }
     public void searchFilter(String searchText){
         filteredList.clear();
-
         for (int i = 0; i < dataList.size(); i++) {
             if (dataList.get(i).getWord().toLowerCase().contains(searchText.toLowerCase())) {
                 filteredList.add(dataList.get(i));
@@ -184,4 +168,16 @@ public class Fragment_WordCard extends Fragment {
         }
         adapter.filterList(filteredList);
     }
+
+    public static void delFilter(String a){
+        delList.clear();
+
+        for (int i = 0; i < dataList.size(); i++) {
+            if (dataList.get(i).getWord().toLowerCase()!=a){
+                delList.add(dataList.get(i));
+            }
+        }
+        adapter.refresh1(delList);
+    }
+
 }

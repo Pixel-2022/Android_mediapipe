@@ -35,6 +35,7 @@ public class WordCardAdapter extends RecyclerView.Adapter<WordCardAdapter.ItemVi
     private int p_userId= MainActivity.p_userID;
     private String BASE_URL=LoginActivity.getBASE_URL();
     private String stringp_userId=String.valueOf(p_userId);
+    int del=-1;
     //
     private LayoutInflater inflater;
     //adapter에 들어갈 list
@@ -45,6 +46,7 @@ public class WordCardAdapter extends RecyclerView.Adapter<WordCardAdapter.ItemVi
     //직전에 클릭했던 item의 position
     private int prePosition = -1;
     private ArrayList<Data> data;
+    private ArrayList<Data> data3;
     public WordCardAdapter(Context context, ArrayList<Data> data){
         this.inflater = LayoutInflater.from(context);
         this.data = data;
@@ -87,7 +89,7 @@ public class WordCardAdapter extends RecyclerView.Adapter<WordCardAdapter.ItemVi
             wordTitle = itemView.findViewById(R.id.wordTitle);
             wordImage = itemView.findViewById(R.id.wordImage);
             expanded = itemView.findViewById(R.id.expandedLayout);
-            int position=getAdapterPosition();
+
 
             wordDeleteBtn = itemView.findViewById(R.id.wordDeleteBtn);
 
@@ -108,7 +110,7 @@ public class WordCardAdapter extends RecyclerView.Adapter<WordCardAdapter.ItemVi
             wordDeleteBtn.setOnClickListener(new View.OnClickListener(){
                 @Override
                 public void onClick(View v){
-
+                    int position=getAdapterPosition();
                     custom_dialog(v, position);
                 }
             });
@@ -134,9 +136,10 @@ public class WordCardAdapter extends RecyclerView.Adapter<WordCardAdapter.ItemVi
             @Override
             public void onClick(View v){
                 //값 알아내기
-                Data data2=data.get(position+1);
+                Data data2=data.get(position);
+                //Log.e("도대체 포지션 값이 뭔데", position+"");
                 String word22= data2.getWord();
-                Log.e("값을 뽑아볼게용", word22);
+                Log.e("data에 포지션 1 더한 값 // 값을 뽑아볼게용", word22);
 
                 //삭제
                 retrofit = new Retrofit.Builder()
@@ -145,9 +148,6 @@ public class WordCardAdapter extends RecyclerView.Adapter<WordCardAdapter.ItemVi
                         .build();
                 retrofitInterface = retrofit.create(RetrofitInterface.class);
 
-                //WordInformation WordInformation1= new WordInformation();
-                //WordInformation1.setUserId(p_userId);
-                //WordInformation1.setWord(word22);
                 HashMap<String, String> map=new HashMap<>();
                 //Log.e("확인 용",stringp_userId);
 
@@ -160,7 +160,8 @@ public class WordCardAdapter extends RecyclerView.Adapter<WordCardAdapter.ItemVi
                     @Override
                     public void onResponse(Call<JsonElement> call, Response<JsonElement> response) {
                         if(response.code()==200){
-                            Log.e("('a' ", "삭제 성공!");
+                            Log.e("삭제성공", data2.getWord());
+                            Fragment_WordCard.delFilter(data2.getWord());
                         }
                         else{
                             Log.e("(._. ", "삭제 실패!");
@@ -188,4 +189,11 @@ public class WordCardAdapter extends RecyclerView.Adapter<WordCardAdapter.ItemVi
         data= filterList;
         notifyDataSetChanged();
     }
+
+    public void refresh1(ArrayList<Data> dellist){
+        data=dellist;
+        notifyDataSetChanged();
+    }
+
+
 }
