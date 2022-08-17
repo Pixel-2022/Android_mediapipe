@@ -29,13 +29,14 @@
                 android:text="no_camera_access" />
         </FrameLayout>
 
-    <View
+    <TextView
         android:layout_margin="10dp"
         android:id="@+id/answerFrame"
         android:layout_gravity="center"
         android:layout_width="300dp"
         android:layout_height="90dp"
-        android:background="#C6DAD6"/>
+        android:background="#C6DAD6"
+        android:text="Hello World!"/>
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

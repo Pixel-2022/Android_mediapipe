@@ -1,12 +1,12 @@
 package com.lite.holistic_tracking;
 
+import android.app.Activity;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 
 import android.util.Log;
 import android.util.Size;
@@ -15,9 +15,12 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.reflect.TypeToken;
 import com.google.mediapipe.components.CameraHelper;
 import com.google.mediapipe.components.CameraXPreviewHelper;
 import com.google.mediapipe.components.ExternalTextureConverter;
@@ -29,6 +32,17 @@ import com.google.mediapipe.framework.PacketGetter;
 import com.google.mediapipe.glutil.EglManager;
 import com.google.protobuf.InvalidProtocolBufferException;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.tensorflow.lite.Interpreter;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.sql.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -80,10 +94,17 @@ public class holistic_activity extends AppCompatActivity {
     // ApplicationInfo for retrieving metadata defined in the manifest.
     private ApplicationInfo applicationInfo;
 
+    float[][][] input_data = new float[1][30][432];
+    float[][] output_data = new float[1][3];
+    int l = 0;
+
+    String[] motion = {"look","train","left"};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_holistic_activity);
+
 
         HashMap<String, float[][]> LandmarkMap = new HashMap<>();
         LandmarkMap.put("pose",null);
@@ -127,7 +148,7 @@ public class holistic_activity extends AppCompatActivity {
         processor
                 .addPacketCallback("face_landmarks", (packet) -> {
                     try {
-                        Log.d("ㄱ", "face");
+//                        Log.d("ㄱ", "face");
                         byte[] landmarksRaw = PacketGetter.getProtoBytes(packet);
                         LandmarkProto.NormalizedLandmarkList poseLandmarks = LandmarkProto.NormalizedLandmarkList.parseFrom(landmarksRaw);
 //                        Log.v("AAA", String.valueOf(packet));
@@ -142,12 +163,65 @@ public class holistic_activity extends AppCompatActivity {
                         LandmarkMap.put("face",getPoseLandmarksDebugAry(poseLandmarks));
 
                         Call<JsonElement> callAPI = retrofitClient.getApi().sendLandmark(LandmarkMap);
+
                         callAPI.enqueue(new Callback<JsonElement>() {
                             @Override
                             public void onResponse(Call<JsonElement> call, Response<JsonElement> response) {
+                                // Landmark Map 값 초기화
+                                LandmarkMap.put("pose",null);
+                                LandmarkMap.put("leftHand",null);
+                                LandmarkMap.put("rightHand",null);
+                                LandmarkMap.put("face",null);
+                                // api로부터 받은 계산된 좌표값을 모델의 input 형태에 맞게 변환 (JsonElement -> JsonArray -> String -> String[])
                                 JsonArray DictResponseArray = response.body().getAsJsonArray();
-                                Log.e("api가 계산해서 보냈어요", String.valueOf(DictResponseArray));
-//                                map 값 초기화 필요
+                                Log.e("받아온 값", String.valueOf(DictResponseArray));
+                                String StringResponse = String.valueOf(DictResponseArray);
+                                StringResponse = StringResponse.replace("[","");
+                                StringResponse = StringResponse.replace("]","");
+                                String[] strArr = StringResponse.split(",");
+
+                                try {
+                                    //1. 배열에 계산된 좌표값을 30개씩 받아와야 함. (String[] -> Float)
+                                    //1-(1). 🐌배열은 stack형식으로 받아야 함!!
+                                    if(l<30){
+                                        for(int i=0; i<432; i++){
+                                            input_data[0][l][i] = Float.parseFloat(strArr[i]);
+                                        }
+                                        l++;
+
+                                    }else{// 2. 30개가 되면 모델에게 보내기
+                                        Interpreter lite = getTfliteInterpreter("AAAA4.tflite");
+                                        lite.run(input_data, output_data);
+
+                                        Log.e("번역된 값이에요", String.valueOf(output_data[0][0])+" "+String.valueOf(output_data[0][1])+" "+String.valueOf(output_data[0][2]));
+                                        l=0;
+                                    }
+                                    //3. output을 텍스트 뷰에 띄워주기
+                                    TextView answerFrame = findViewById(R.id.answerFrame);
+                                        // 3-(1). output_data에서 확률이 제일 큰 값을 AND 0.9이상일때만 출력하기
+                                    if((output_data[0][0]>=0.7 || output_data[0][1]>=0.7) || output_data[0][2]>=0.7){
+                                        // 3-(2). 배열의 max값에 해당하는 motion 데이터 값 출력하기
+                                        float maxNum = 0;
+                                        int maxLoc = -1;
+                                        for(int x=0; x<output_data.length; x++){
+                                            if(maxNum<output_data[0][x]){
+                                                maxNum = output_data[0][x];
+                                                maxLoc = x;
+                                            }
+                                        }
+                                        if(maxLoc!=-1){
+                                            Log.e("번역 : ",motion[maxLoc]);
+                                            answerFrame.setText(motion[maxLoc]);
+                                        }
+
+                                    }else{
+                                        answerFrame.setText("뭘까요?");
+                                    }
+
+//                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
                             }
                             @Override
                             public void onFailure(Call<JsonElement> call, Throwable t) {
@@ -162,7 +236,7 @@ public class holistic_activity extends AppCompatActivity {
         processor
                 .addPacketCallback("pose_landmarks", (packet) -> {
                     try {
-                        Log.d("ㄱ", "pose");
+//                        Log.d("ㄱ", "pose");
                         byte[] landmarksRaw = PacketGetter.getProtoBytes(packet);
                         LandmarkProto.NormalizedLandmarkList poseLandmarks = LandmarkProto.NormalizedLandmarkList.parseFrom(landmarksRaw);
 //                        Log.v("AAA", String.valueOf(packet));
@@ -183,7 +257,7 @@ public class holistic_activity extends AppCompatActivity {
         processor
                 .addPacketCallback("left_hand_landmarks", (packet) -> {
                     try {
-                        Log.d("ㄱ", "left");
+//                        Log.d("ㄱ", "left");
                         byte[] landmarksRaw = PacketGetter.getProtoBytes(packet);
                         LandmarkProto.NormalizedLandmarkList poseLandmarks = LandmarkProto.NormalizedLandmarkList.parseFrom(landmarksRaw);
 //                        Log.v("AAA", String.valueOf(packet));
@@ -204,7 +278,7 @@ public class holistic_activity extends AppCompatActivity {
         processor
                 .addPacketCallback("right_hand_landmarks", (packet) -> {
                     try {
-                        Log.d("ㄱ", "right");
+//                        Log.d("ㄱ", "right");
                         byte[] landmarksRaw = PacketGetter.getProtoBytes(packet);
                         LandmarkProto.NormalizedLandmarkList poseLandmarks = LandmarkProto.NormalizedLandmarkList.parseFrom(landmarksRaw);
 //                        Log.v("AAA", String.valueOf(packet));
@@ -238,25 +312,7 @@ public class holistic_activity extends AppCompatActivity {
 
 
     }
-// 좌표값 string으로 변환해서 반환하는 코드
-//    private static String getPoseLandmarksDebugString(LandmarkProto.NormalizedLandmarkList poseLandmarks) {
-//        String poseLandmarkStr = "Pose landmarks: " + poseLandmarks.getLandmarkCount() + "\n";
-//        int landmarkIndex = 0;
-//        for (LandmarkProto.NormalizedLandmark landmark : poseLandmarks.getLandmarkList()) {
-//            poseLandmarkStr +=
-//                    "\tLandmark ["
-//                            + landmarkIndex
-//                            + "]: ("
-//                            + landmark.getX()
-//                            + ", "
-//                            + landmark.getY()
-//                            + ", "
-//                            + landmark.getZ()
-//                            + ")\n";
-//            ++landmarkIndex;
-//        }
-//        return poseLandmarkStr;
-//    }
+
 
     // 좌표값 숫자 배열로 변환해서 반환하는 코드
     private static float[][] getPoseLandmarksDebugAry(LandmarkProto.NormalizedLandmarkList poseLandmarks){
@@ -368,4 +424,24 @@ public class holistic_activity extends AppCompatActivity {
                             }
                         });
     }
+    
+//    tflite 관련 코드
+    private Interpreter getTfliteInterpreter(String modelPath){
+        try{
+            return new Interpreter(loadModelFile(holistic_activity.this, modelPath));
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public MappedByteBuffer loadModelFile(Activity activity, String modelPath) throws IOException {
+        AssetFileDescriptor fileDescriptor = activity.getAssets().openFd(modelPath);
+        FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
+        FileChannel fileChannel = inputStream.getChannel();
+        long startOffset = fileDescriptor.getStartOffset();
+        long declaredLength = fileDescriptor.getDeclaredLength();
+        return fileChannel.map(FileChannel.MapMode.READ_ONLY,startOffset,declaredLength);
+    }
 }
+
